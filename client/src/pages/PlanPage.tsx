@@ -118,7 +118,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-stone-950 overflow-hidden">
+    <div className="flex flex-col bg-stone-950 overflow-hidden" style={{ height: '100dvh' }}>
       {/* Header */}
       <header className="flex items-center px-4 py-2.5 bg-stone-900 border-b border-stone-800 flex-shrink-0 gap-4 no-print">
         {/* Left: logo + activity selector */}

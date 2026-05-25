@@ -40,7 +40,14 @@ console.log('API key loaded:', !!process.env.ANTHROPIC_API_KEY);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://trailready-8n8b.onrender.com',
+    /\.onrender\.com$/,
+    /\.vercel\.app$/,
+  ]
+}));
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
