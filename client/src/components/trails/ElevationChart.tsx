@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { API_BASE } from '../../api/base';
 
 interface ElevationPoint {
   distanceMi: number;
@@ -20,7 +21,7 @@ export default function ElevationChart({ coordinates, totalDistanceMi }: Props) 
     if (!coordinates || coordinates.length < 2) return;
     setLoading(true);
     setFailed(false);
-    fetch('/api/elevation/profile', {
+    fetch(`${API_BASE}/api/elevation/profile`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ coordinates, totalDistanceMi }),

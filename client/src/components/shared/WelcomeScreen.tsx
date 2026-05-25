@@ -14,7 +14,7 @@ export default function WelcomeScreen() {
   const tripType = useTripStore((s) => s.tripType);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full p-6 text-center max-w-lg mx-auto">
+    <div className="flex flex-col items-center justify-center min-h-full p-6 py-8 text-center max-w-lg mx-auto">
       {/* Hero */}
       <div className="mb-8">
         <div className="text-5xl mb-3">⛺</div>

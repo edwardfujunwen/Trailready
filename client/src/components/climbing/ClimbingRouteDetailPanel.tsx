@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../api/base';
 
 interface ClimbingDetail {
   name: string;
@@ -56,7 +57,7 @@ export default function ClimbingRouteDetailPanel({ name, grade, locationName }: 
     const params = new URLSearchParams({ name });
     if (grade) params.set('grade', grade);
     if (locationName) params.set('locationName', locationName);
-    fetch('/api/climbing/detail?' + params.toString())
+    fetch(API_BASE + '/api/climbing/detail?' + params.toString())
       .then((r) => r.json())
       .then((d) => { setDetail(d); setLoading(false); })
       .catch(() => setLoading(false));

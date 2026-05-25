@@ -448,10 +448,14 @@ export default function TrailList() {
                   </div>
                 </div>
               </div>
+              {/* On desktop: show detail inline below the trail row.
+                  On mobile: hidden here — PlanPage renders a full-screen overlay instead. */}
               {isActive && (
-                <TrailDetailPanel
-                  trail={{ name: trail.name, distanceMi: trail.distanceMi, lat: trail.lat, lon: trail.lon }}
-                />
+                <div className="hidden md:block">
+                  <TrailDetailPanel
+                    trail={{ name: trail.name, distanceMi: trail.distanceMi, lat: trail.lat, lon: trail.lon }}
+                  />
+                </div>
               )}
             </div>
           );

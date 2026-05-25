@@ -1,7 +1,8 @@
 import type { Campground, AvailableSite } from '../types/campsite';
+import { API_BASE } from './base';
 
 export async function searchCampgrounds(lat: number, lon: number, radius = 25): Promise<Campground[]> {
-  const res = await fetch(`/api/campsites/search?lat=${lat}&lon=${lon}&radius=${radius}`);
+  const res = await fetch(`${API_BASE}/api/campsites/search?lat=${lat}&lon=${lon}&radius=${radius}`);
   if (!res.ok) throw new Error('Failed to search campgrounds');
   return res.json();
 }

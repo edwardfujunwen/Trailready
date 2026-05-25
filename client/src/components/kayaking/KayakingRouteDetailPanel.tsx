@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../api/base';
 
 interface KayakDetail {
   name: string;
@@ -47,7 +48,7 @@ export default function KayakingRouteDetailPanel({ name, distanceMi, locationNam
     const params = new URLSearchParams({ name });
     if (distanceMi != null) params.set('distanceMi', distanceMi.toString());
     if (locationName) params.set('locationName', locationName);
-    fetch('/api/kayaking/detail?' + params.toString())
+    fetch(API_BASE + '/api/kayaking/detail?' + params.toString())
       .then((r) => r.json())
       .then((d) => { setDetail(d); setLoading(false); })
       .catch(() => setLoading(false));

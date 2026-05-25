@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTripStore } from '../../store/useTripStore';
+import { API_BASE } from '../../api/base';
 
 interface EmergencyInfo {
   emergencyNumber: string;
@@ -26,7 +27,7 @@ export default function EmergencyPanel() {
       lat: location.lat.toString(),
       lon: location.lon.toString(),
     });
-    fetch('/api/emergency/info?' + params)
+    fetch(API_BASE + '/api/emergency/info?' + params)
       .then(r => r.json())
       .then(d => { setInfo(d); setLoading(false); })
       .catch(() => setLoading(false));

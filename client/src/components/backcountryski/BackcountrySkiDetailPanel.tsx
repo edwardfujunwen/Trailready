@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTripStore } from '../../store/useTripStore';
+import { API_BASE } from '../../api/base';
 
 interface SkiDetail {
   name: string;
@@ -51,7 +52,7 @@ export default function BackcountrySkiDetailPanel({ route }: Props) {
     if (route.lat) params.set('lat', route.lat.toString());
     if (route.lon) params.set('lon', route.lon.toString());
     if (locationName) params.set('locationName', locationName);
-    fetch(`/api/backcountryski/detail?${params}`)
+    fetch(`${API_BASE}/api/backcountryski/detail?${params}`)
       .then(r => r.json())
       .then(d => { setDetail(d); setLoading(false); })
       .catch(() => setLoading(false));

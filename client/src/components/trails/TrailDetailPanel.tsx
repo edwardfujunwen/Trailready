@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTripStore } from '../../store/useTripStore';
 import { useTrailStore } from '../../store/useTrailStore';
 import ElevationChart from './ElevationChart';
+import { API_BASE } from '../../api/base';
 
 interface TrailDetail {
   name: string;
@@ -73,7 +74,7 @@ export default function TrailDetailPanel({ trail }: Props) {
     if (trail.lon) params.set('lon', trail.lon.toString());
     if (trail.distanceMi) params.set('distanceMi', trail.distanceMi.toString());
     if (locationName) params.set('locationName', locationName);
-    fetch(`/api/trails/detail?${params}`)
+    fetch(`${API_BASE}/api/trails/detail?${params}`)
       .then(r => r.json())
       .then(d => { setDetail(d); setLoading(false); })
       .catch(() => setLoading(false));
@@ -85,7 +86,7 @@ export default function TrailDetailPanel({ trail }: Props) {
     setPhotos([]);
     const params = new URLSearchParams({ name: trail.name });
     if (activeParkCode) params.set('parkCode', activeParkCode);
-    fetch(`/api/trails/photos?${params}`)
+    fetch(`${API_BASE}/api/trails/photos?${params}`)
       .then(r => r.json())
       .then(d => { if (d.photos) setPhotos(d.photos); })
       .catch(() => { /* silently skip */ });
@@ -94,7 +95,7 @@ export default function TrailDetailPanel({ trail }: Props) {
   // Fetch NPS alerts for the active park
   useEffect(() => {
     if (!activeParkCode) { setAlerts([]); return; }
-    fetch(`/api/nps/alerts?parkCode=${activeParkCode}`)
+    fetch(`${API_BASE}/api/nps/alerts?parkCode=${activeParkCode}`)
       .then(r => r.json())
       .then(d => { if (d.alerts) setAlerts(d.alerts); })
       .catch(() => { /* silently skip */ });
