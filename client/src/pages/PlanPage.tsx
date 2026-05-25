@@ -19,6 +19,8 @@ import { AuthModal } from '../components/auth/AuthModal';
 import { UserMenu } from '../components/auth/UserMenu';
 import { SavedTripsPanel } from '../components/auth/SavedTripsPanel';
 import { useAuthStore } from '../store/useAuthStore';
+import { useTrailStore } from '../store/useTrailStore';
+import TrailDetailPanel from '../components/trails/TrailDetailPanel';
 
 type MobileTab = 'map' | 'trails' | 'climb' | 'kayak' | 'bcski' | 'weather' | 'packing' | 'campsites' | 'emergency';
 
@@ -67,6 +69,8 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
   const [showSavedTrips, setShowSavedTrips] = useState(false);
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
+  const loadedTrail = useTrailStore((s) => s.loadedTrail);
+  const clearTrail = useTrailStore((s) => s.clearTrail);
   useCampsites();
 
   // Restore trip state from shared URL on first load
@@ -277,6 +281,29 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           {mobileTab === 'trails' && (
             <div className="absolute inset-0 z-10 bg-stone-950 overflow-hidden flex flex-col">
               <TrailList />
+            </div>
+          )}
+
+          {/* Mobile trail detail — full screen overlay when a trail is selected */}
+          {mobileTab === 'trails' && loadedTrail && loadedTrail.source === 'search' && (
+            <div className="absolute inset-0 z-20 bg-stone-950 flex flex-col overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-800 flex-shrink-0 bg-stone-900">
+                <button
+                  onClick={clearTrail}
+                  className="flex items-center gap-1.5 text-stone-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="text-sm">Back</span>
+                </button>
+                <p className="text-sm font-semibold text-white truncate flex-1">{loadedTrail.name}</p>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <TrailDetailPanel
+                  trail={{ name: loadedTrail.name, distanceMi: loadedTrail.distanceMi, lat: loadedTrail.lat, lon: loadedTrail.lon }}
+                />
+              </div>
             </div>
           )}
 
