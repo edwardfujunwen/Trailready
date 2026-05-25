@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#166534"/>
+  <!-- Mountain -->
+  <polygon points="256,80 420,340 92,340" fill="#ffffff" opacity="0.15"/>
+  <polygon points="180,180 340,340 20,340" fill="#ffffff" opacity="0.2"/>
+  <!-- Tent -->
+  <polygon points="256,240 340,380 172,380" fill="#ffffff"/>
+  <line x1="256" y1="240" x2="256" y2="380" stroke="#166534" stroke-width="8"/>
+  <!-- Stars -->
+  <circle cx="120" cy="120" r="6" fill="#ffffff" opacity="0.8"/>
+  <circle cx="380" cy="100" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="410" cy="150" r="5" fill="#ffffff" opacity="0.7"/>
+  <circle cx="90" cy="170" r="3" fill="#ffffff" opacity="0.5"/>
+</svg>

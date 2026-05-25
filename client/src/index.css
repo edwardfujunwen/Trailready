@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-stone-950 text-stone-100 font-sans;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-stone-900 border border-stone-800 rounded-xl overflow-hidden;
+  }
+  .btn-primary {
+    @apply bg-forest-600 hover:bg-forest-700 text-white font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-stone-800 hover:bg-stone-700 text-stone-100 font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+  .input {
+    @apply bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-forest-500 w-full;
+  }
+}
+
+@media print {
+  /* Hide everything except the packing list */
+  body { background: white !important; color: black !important; }
+
+  /* Hide non-packing UI */
+  header, nav, .no-print { display: none !important; }
+
+  /* Show only the packing panel in print */
+  .print-packing-list { display: block !important; }
+
+  /* Style the printed list */
+  .print-packing-list { font-family: system-ui, sans-serif; padding: 20px; }
+  .print-category-name { font-size: 14px; font-weight: bold; margin: 16px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  .print-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #eee; font-size: 12px; }
+  .print-item-name { flex: 1; }
+  .print-item-weight { color: #666; margin-left: 8px; }
+  .print-item-priority { color: #999; margin-left: 8px; text-transform: capitalize; }
+
+  /* Prevent page breaks inside categories */
+  .print-category { break-inside: avoid; }
+
+  a { display: none !important; } /* hide buy links in print */
+}

@@ -1,0 +1,18 @@
+{
+  "name": "TrailReady",
+  "short_name": "TrailReady",
+  "description": "Plan your hiking and backpacking trips",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0a09",
+  "theme_color": "#166534",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
