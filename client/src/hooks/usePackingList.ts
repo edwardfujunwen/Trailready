@@ -13,16 +13,16 @@ export function usePackingList() {
 
   const generate = async () => {
     if (!trip.location) return;
-    const isDayHike = trip.tripType === 'hiking';
-    if (!isDayHike && (!trip.checkin || !trip.checkout)) return;
+    const isDayHike = trip.tripType === 'hiking' || trip.tripType === 'snowshoeing';
     const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
     setLoading(true);
     try {
       const list = await generatePackingList({
         location: trip.location.name,
         nights: isDayHike ? 0 : trip.nights,
         checkin: trip.checkin || today,
-        checkout: trip.checkout || today,
+        checkout: trip.checkout || (isDayHike ? today : tomorrow),
         elevationFt: trip.location.elevationFt,
         tempHighF: weather?.tempHighF,
         tempLowF: weather?.tempLowF,
