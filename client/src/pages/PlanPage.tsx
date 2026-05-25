@@ -331,10 +331,6 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           {/* Weather */}
           {mobileTab === 'weather' && (
             <div className="absolute inset-0 z-10 bg-stone-950 overflow-y-auto">
-              {/* Dates for mobile — needed for packing list */}
-              <div className="px-4 py-3 border-b border-stone-800">
-                <MobileDatePicker />
-              </div>
               <WeatherPanel />
             </div>
           )}
@@ -342,6 +338,12 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           {/* Packing */}
           {mobileTab === 'packing' && (
             <div className="absolute inset-0 z-10 bg-stone-950 overflow-hidden flex flex-col">
+              {/* Dates needed for packing list generation */}
+              {tripType !== 'hiking' && (
+                <div className="px-4 py-3 border-b border-stone-800 flex-shrink-0 bg-stone-900">
+                  <MobileDatePicker />
+                </div>
+              )}
               <PackingPanel />
             </div>
           )}
