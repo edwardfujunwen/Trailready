@@ -120,7 +120,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
   return (
     <div className="fixed inset-0 flex flex-col bg-stone-950 overflow-hidden">
       {/* Header */}
-      <header className="flex items-center px-4 py-2.5 bg-stone-900 border-b border-stone-800 flex-shrink-0 gap-4 no-print">
+      <header className="flex items-center px-4 py-2.5 bg-stone-900 border-b border-stone-800 flex-shrink-0 gap-4 no-print" style={{ paddingTop: 'max(10px, env(safe-area-inset-top))' }}>
         {/* Left: logo + activity selector */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <button
@@ -267,7 +267,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           <div className={`absolute inset-0 ${mobileTab === 'map' ? 'z-10' : 'z-0 pointer-events-none'}`}>
             <TrailMap />
             {mobileTab === 'map' && !location && (
-              <div className="absolute inset-0 bg-stone-950/80 overflow-y-auto z-10">
+              <div className="absolute inset-0 bg-stone-950 overflow-y-auto z-10">
                 <WelcomeScreen />
               </div>
             )}
@@ -335,7 +335,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
         </div>
 
         {/* Bottom navigation */}
-        <nav className="flex-shrink-0 flex border-t border-stone-800 bg-stone-900 pb-safe">
+        <nav className="flex-shrink-0 flex border-t border-stone-800 bg-stone-900" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {mobileTabs.map((tab) => (
             <button key={tab.id} onClick={() => setMobileTab(tab.id)}
               className={`flex-1 flex flex-col items-center gap-0.5 py-2 transition-colors ${
