@@ -3,7 +3,7 @@ import { useTripStore } from '../../store/useTripStore';
 import { useTrailStore } from '../../store/useTrailStore';
 import ClimbingRouteDetailPanel from './ClimbingRouteDetailPanel';
 
-const API = 'http://localhost:3001';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 type TypeFilter = 'All' | 'Sport' | 'Trad' | 'Boulder' | 'Tr' | 'Alpine' | 'Aid';
 

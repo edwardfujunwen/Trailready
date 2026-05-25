@@ -3,7 +3,7 @@ import { useTripStore } from '../../store/useTripStore';
 import { useTrailStore } from '../../store/useTrailStore';
 import BackcountrySkiDetailPanel from './BackcountrySkiDetailPanel';
 
-const API = 'http://localhost:3001';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 interface SkiRoute {
   id: string;

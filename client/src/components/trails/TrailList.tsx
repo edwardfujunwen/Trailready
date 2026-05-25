@@ -5,7 +5,7 @@ import { parseGpx } from '../../utils/gpx';
 import type { NearbyTrail } from '../../store/useTrailStore';
 import TrailDetailPanel from './TrailDetailPanel';
 
-const API = 'http://localhost:3001';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 // ── Overpass (OSM) helpers ───────────────────────────────────────────────────
 
