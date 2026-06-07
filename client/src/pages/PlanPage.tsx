@@ -14,6 +14,7 @@ import { useCampsites } from '../hooks/useCampsites';
 import { useTripStore } from '../store/useTripStore';
 import { encodeTripToUrl, decodeTripFromUrl } from '../utils/tripShare';
 import EmergencyPanel from '../components/shared/EmergencyPanel';
+import GroupPanel from '../components/group/GroupPanel';
 import WelcomeScreen from '../components/shared/WelcomeScreen';
 import { AuthModal } from '../components/auth/AuthModal';
 import { UserMenu } from '../components/auth/UserMenu';
@@ -21,8 +22,10 @@ import { SavedTripsPanel } from '../components/auth/SavedTripsPanel';
 import { useAuthStore } from '../store/useAuthStore';
 import { useTrailStore } from '../store/useTrailStore';
 import TrailDetailPanel from '../components/trails/TrailDetailPanel';
+import RequirementsAlert from '../components/shared/RequirementsAlert';
+import TripBriefing from '../components/shared/TripBriefing';
 
-type MobileTab = 'map' | 'trails' | 'climb' | 'kayak' | 'bcski' | 'weather' | 'packing' | 'campsites' | 'emergency';
+type MobileTab = 'map' | 'trails' | 'climb' | 'kayak' | 'bcski' | 'weather' | 'packing' | 'campsites' | 'group' | 'emergency';
 
 const MapIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,19 +57,26 @@ const SOSIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
   </svg>
 );
+const GroupIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
 
 export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
-  const [rightTab, setRightTab] = useState<'weather' | 'packing' | 'campsites' | 'emergency'>('weather');
+  const [rightTab, setRightTab] = useState<'weather' | 'packing' | 'campsites' | 'group' | 'emergency'>('weather');
   const tripType = useTripStore((s) => s.tripType);
   const location = useTripStore((s) => s.location);
   const checkin = useTripStore((s) => s.checkin);
   const checkout = useTripStore((s) => s.checkout);
+  const groupSize = useTripStore((s) => s.groupSize);
   const [mobileTab, setMobileTab] = useState<MobileTab>(
     tripType === 'rockclimbing' ? 'climb' : tripType === 'kayaking' ? 'kayak' : tripType === 'backcountryski' ? 'bcski' : 'map'
   );
   const [copied, setCopied] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSavedTrips, setShowSavedTrips] = useState(false);
+  const [showBriefing, setShowBriefing] = useState(false);
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
   const loadedTrail = useTrailStore((s) => s.loadedTrail);
@@ -118,6 +128,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
     { id: 'weather' as MobileTab, label: 'Weather', icon: <WeatherIcon /> },
     { id: 'packing' as MobileTab, label: 'Gear', icon: <PackingIcon /> },
     ...(tripType === 'backpacking' ? [{ id: 'campsites' as MobileTab, label: 'Camps', icon: <CampsiteIcon /> }] : []),
+    ...(groupSize > 1 ? [{ id: 'group' as MobileTab, label: 'Group', icon: <GroupIcon /> }] : []),
     { id: 'emergency' as MobileTab, label: 'SOS', icon: <SOSIcon /> },
   ];
 
@@ -140,6 +151,18 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
 
         {/* Right side of header — auth + share button */}
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+          {location && (
+            <button
+              onClick={() => setShowBriefing(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg transition-colors border border-stone-700"
+              title="Generate trip briefing"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Briefing
+            </button>
+          )}
           {location && (
             <button
               onClick={handleShare}
@@ -185,6 +208,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           onTripLoaded={() => setShowSavedTrips(false)}
         />
       )}
+      {showBriefing && <TripBriefing onClose={() => setShowBriefing(false)} />}
 
       {/* ── DESKTOP layout (md and up) ── */}
       <div className="hidden md:flex flex-1 overflow-hidden">
@@ -193,6 +217,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           <div className="flex-shrink-0 border-b border-stone-800">
             <SmartSearch />
           </div>
+          <RequirementsAlert />
           <div className="flex-1 overflow-hidden">
             {!location ? (
               <WelcomeScreen />
@@ -211,31 +236,28 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
         {/* Center: Map — shrinks when a trail is selected to give more room to panels */}
         <div className={`overflow-hidden relative transition-all duration-300 ${loadedTrail ? 'w-[320px] flex-shrink-0' : 'flex-1'}`}>
           <TrailMap />
-          <div className="absolute bottom-4 right-4 bg-stone-900/80 rounded-lg px-3 py-1.5 text-xs text-stone-400 backdrop-blur-sm border border-stone-800">
-            Click map to add route waypoints
-          </div>
         </div>
 
-        {/* Right panel — weather/packing/campsites tabs; slightly wider */}
+        {/* Right panel — weather/packing/campsites/group tabs */}
         <div className="w-96 flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden">
-          {/* Tab bar with improved styling */}
-          <div className="flex border-b border-stone-800 flex-shrink-0 bg-stone-900/50">
+          {/* Tab bar */}
+          <div className="flex border-b border-stone-800 flex-shrink-0">
             {([
-              { id: 'weather',   label: 'Weather',   icon: '🌤' },
-              { id: 'packing',   label: 'Gear',      icon: '🎒' },
-              { id: 'campsites', label: 'Camps',     icon: '⛺' },
-              { id: 'emergency', label: 'SOS',       icon: '🚨' },
-            ] as const).map((tab) => (
+              { id: 'weather',   label: 'Weather' },
+              { id: 'packing',   label: 'Gear' },
+              { id: 'campsites', label: 'Camps' },
+              ...(groupSize > 1 ? [{ id: 'group', label: 'Group' }] : []),
+              { id: 'emergency', label: 'SOS' },
+            ] as { id: 'weather' | 'packing' | 'campsites' | 'group' | 'emergency'; label: string }[]).map((tab) => (
               <button key={tab.id} onClick={() => setRightTab(tab.id)}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${
+                className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                   rightTab === tab.id
                     ? tab.id === 'emergency'
-                      ? 'text-red-400 border-b-2 border-red-500 bg-stone-950/60'
-                      : 'text-forest-400 border-b-2 border-forest-500 bg-stone-950/60'
-                    : 'text-stone-500 hover:text-stone-300 hover:bg-stone-800/40 border-b-2 border-transparent'
+                      ? 'text-red-400 border-b-2 border-red-500'
+                      : 'text-forest-400 border-b-2 border-forest-500'
+                    : 'text-stone-500 hover:text-stone-300 border-b-2 border-transparent'
                 }`}>
-                <span className="text-base leading-none">{tab.icon}</span>
-                <span>{tab.label}</span>
+                {tab.label}
               </button>
             ))}
           </div>
@@ -252,6 +274,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
                 </div>
               </div>
             )}
+            {rightTab === 'group'     && <GroupPanel />}
             {rightTab === 'emergency' && <EmergencyPanel />}
           </div>
         </div>
@@ -281,6 +304,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           {/* Trails */}
           {mobileTab === 'trails' && (
             <div className="absolute inset-0 z-10 bg-stone-950 overflow-hidden flex flex-col">
+              <RequirementsAlert />
               <TrailList />
             </div>
           )}
@@ -353,6 +377,13 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           {mobileTab === 'campsites' && (
             <div className="absolute inset-0 z-10 bg-stone-950 overflow-hidden flex flex-col">
               <CampsitePanel />
+            </div>
+          )}
+
+          {/* Group */}
+          {mobileTab === 'group' && (
+            <div className="absolute inset-0 z-10 bg-stone-950 overflow-hidden flex flex-col">
+              <GroupPanel />
             </div>
           )}
 

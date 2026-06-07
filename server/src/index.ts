@@ -1238,6 +1238,67 @@ app.get('/api/nps/alerts', async (req, res) => {
   }
 });
 
+// ── Location Requirements (bear canister + permits) ──────────────────────────
+
+const BEAR_CANISTER_REQUIRED = new Set(['yose', 'seki', 'jotr', 'grte', 'romo', 'grsm']);
+const PERMIT_REQUIRED = new Set(['yose', 'seki', 'romo', 'grte']);
+
+app.get('/api/location/requirements', async (req, res) => {
+  const { parkCode, locationName } = req.query as { parkCode?: string; locationName?: string };
+
+  const code = (parkCode || '').toLowerCase().trim();
+
+  const bearCanisterRequired = BEAR_CANISTER_REQUIRED.has(code);
+  const permitRequired = PERMIT_REQUIRED.has(code);
+
+  // Build default info strings based on hardcoded data
+  let bearInfo = bearCanisterRequired
+    ? 'A bear canister is required for all overnight trips in this area. Day hikers are strongly encouraged to use one as well.'
+    : 'Bear canisters are recommended but not required in this area.';
+
+  let permitInfo = permitRequired
+    ? 'A wilderness permit is required for overnight backcountry camping. Permits must be reserved in advance through recreation.gov.'
+    : 'No wilderness permit required for day hiking. Overnight trips may require a permit — check with the park.';
+
+  let source = 'hardcoded';
+
+  // Try to enrich with live NPS alerts data
+  const apiKey = process.env.NPS_API_KEY;
+  if (apiKey && code) {
+    try {
+      const url = `https://developer.nps.gov/api/v1/alerts?parkCode=${code}&limit=20&api_key=${apiKey}`;
+      const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      const data: any = await r.json();
+      const alerts: any[] = data.data || [];
+
+      // Look for bear / permit related alerts
+      const bearAlerts = alerts.filter((a: any) =>
+        /bear|canister|food storage/i.test(a.title + ' ' + a.description)
+      );
+      const permitAlerts = alerts.filter((a: any) =>
+        /permit|reservation|quota/i.test(a.title + ' ' + a.description)
+      );
+
+      if (bearAlerts.length > 0) {
+        bearInfo = bearAlerts[0].description || bearInfo;
+        source = 'nps-api';
+      }
+      if (permitAlerts.length > 0) {
+        permitInfo = permitAlerts[0].description || permitInfo;
+        source = 'nps-api';
+      }
+    } catch { /* silently fall back to hardcoded data */ }
+  }
+
+  res.json({
+    bearCanisterRequired,
+    permitRequired,
+    bearInfo,
+    permitInfo,
+    source,
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
