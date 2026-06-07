@@ -77,6 +77,8 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSavedTrips, setShowSavedTrips] = useState(false);
   const [showBriefing, setShowBriefing] = useState(false);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
   const loadedTrail = useTrailStore((s) => s.loadedTrail);
@@ -212,12 +214,12 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
 
       {/* ── DESKTOP layout (md and up) ── */}
       <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* Left panel — search + trails; expands when a trail is selected */}
-        <div className={`flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300 ${loadedTrail ? 'w-[400px]' : 'w-80'}`}>
+
+        {/* Left panel — collapsible */}
+        <div className={`flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300 ${leftOpen ? 'w-80' : 'w-0'}`}>
           <div className="flex-shrink-0 border-b border-stone-800">
             <SmartSearch />
           </div>
-          <RequirementsAlert />
           <div className="flex-1 overflow-hidden">
             {!location ? (
               <WelcomeScreen />
@@ -233,13 +235,37 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           </div>
         </div>
 
-        {/* Center: Map — shrinks when a trail is selected to give more room to panels */}
-        <div className={`overflow-hidden relative transition-all duration-300 ${loadedTrail ? 'w-[380px] flex-shrink-0' : 'flex-1'}`}>
+        {/* Left toggle button */}
+        <button
+          onClick={() => setLeftOpen(o => !o)}
+          className="flex-shrink-0 w-5 flex items-center justify-center bg-stone-900 hover:bg-stone-800 border-r border-stone-800 transition-colors z-10"
+          title={leftOpen ? 'Collapse trails panel' : 'Expand trails panel'}
+        >
+          <svg className="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={leftOpen ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
+          </svg>
+        </button>
+
+        {/* Center: Map — always flex-1, map fills remaining space */}
+        <div className="flex-1 overflow-hidden relative">
           <TrailMap />
         </div>
 
-        {/* Right panel — weather/packing/campsites/group tabs */}
-        <div className="w-80 flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden">
+        {/* Right toggle button */}
+        <button
+          onClick={() => setRightOpen(o => !o)}
+          className="flex-shrink-0 w-5 flex items-center justify-center bg-stone-900 hover:bg-stone-800 border-l border-stone-800 transition-colors z-10"
+          title={rightOpen ? 'Collapse info panel' : 'Expand info panel'}
+        >
+          <svg className="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={rightOpen ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
+          </svg>
+        </button>
+
+        {/* Right panel — collapsible */}
+        <div className={`flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden transition-all duration-300 ${rightOpen ? 'w-80' : 'w-0'}`}>
+          {/* Bear canister / permit alerts */}
+          <RequirementsAlert />
           {/* Tab bar */}
           <div className="flex border-b border-stone-800 flex-shrink-0">
             {([
