@@ -33,6 +33,7 @@ export interface Campground {
   description: string;
   reservationUrl: string;
   imageUrl?: string;
+  source: 'recreation.gov' | 'other';
 }
 
 export interface AvailableSite {
@@ -62,6 +63,7 @@ export async function searchCampgrounds(lat: number, lon: number, radiusMiles = 
     description: f.FacilityDescription?.replace(/<[^>]+>/g, '').slice(0, 300) || '',
     reservationUrl: `https://www.recreation.gov/camping/campgrounds/${f.FacilityID}`,
     imageUrl: f.MEDIA?.[0]?.URL,
+    source: 'recreation.gov' as const,
   }));
 }
 

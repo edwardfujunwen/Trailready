@@ -17,7 +17,14 @@ export default function CampsiteCard({ campground }: Props) {
     <div className="bg-stone-800 border border-stone-700 rounded-xl p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-stone-200 leading-tight">{campground.name}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-stone-200 leading-tight">{campground.name}</h3>
+            {campground.source === 'recreation.gov' && (
+              <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-900 text-blue-300 border border-blue-700 flex-shrink-0">
+                Recreation.gov
+              </span>
+            )}
+          </div>
           {campground.description && (
             <p className="text-xs text-stone-500 mt-1 line-clamp-2">{campground.description}</p>
           )}
@@ -53,14 +60,14 @@ export default function CampsiteCard({ campground }: Props) {
         </div>
       )}
 
-      {/* Book button */}
+      {/* Reserve button */}
       <a
         href={campground.reservationUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="block w-full text-xs btn-primary py-1.5 text-center"
       >
-        Book on Rec.gov →
+        {campground.source === 'recreation.gov' ? 'Reserve on Recreation.gov →' : 'Book on Rec.gov →'}
       </a>
     </div>
   );

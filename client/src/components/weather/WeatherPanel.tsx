@@ -1,6 +1,51 @@
 import { useWeatherStore } from '../../store/useWeatherStore';
 import { useTripStore } from '../../store/useTripStore';
-import WeatherCard from './WeatherCard';
+import WeatherCard, { getWeatherIcon } from './WeatherCard';
+import type { ForecastPeriod } from '../../types/weather';
+
+interface DayForecast {
+  label: string;
+  icon: string;
+  shortForecast: string;
+  highF: number | null;
+  lowF: number | null;
+  unit: string;
+}
+
+function buildDailyForecasts(periods: ForecastPeriod[]): DayForecast[] {
+  const map = new Map<string, DayForecast>();
+
+  for (const p of periods) {
+    // Key by calendar date
+    const dateKey = new Date(p.startTime).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'numeric',
+      day: 'numeric',
+    });
+
+    if (!map.has(dateKey)) {
+      map.set(dateKey, {
+        label: dateKey,
+        icon: p.isDaytime ? getWeatherIcon(p.shortForecast) : '🌙',
+        shortForecast: p.isDaytime ? p.shortForecast : '',
+        highF: p.isDaytime ? p.temperature : null,
+        lowF: !p.isDaytime ? p.temperature : null,
+        unit: p.temperatureUnit,
+      });
+    } else {
+      const day = map.get(dateKey)!;
+      if (p.isDaytime) {
+        day.highF = p.temperature;
+        day.icon = getWeatherIcon(p.shortForecast);
+        day.shortForecast = p.shortForecast;
+      } else {
+        day.lowF = p.temperature;
+      }
+    }
+  }
+
+  return Array.from(map.values()).slice(0, 7);
+}
 
 export default function WeatherPanel() {
   const { periods, loading, error, summary } = useWeatherStore();
@@ -51,6 +96,7 @@ export default function WeatherPanel() {
   }
 
   const displayPeriods = filteredPeriods.length ? filteredPeriods : periods.slice(0, 14);
+  const dailyForecasts = buildDailyForecasts(displayPeriods);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -66,6 +112,38 @@ export default function WeatherPanel() {
             <p className={`text-xs font-bold ${summary.precipRisk === 'high' ? 'text-blue-400' : summary.precipRisk === 'medium' ? 'text-sky-400' : 'text-green-400'}`}>
               {summary.precipRisk.charAt(0).toUpperCase() + summary.precipRisk.slice(1)}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Daily forecast strip */}
+      {dailyForecasts.length > 0 && (
+        <div className="flex-shrink-0 px-3 py-2 border-b border-stone-800">
+          <p className="text-[10px] text-stone-600 uppercase tracking-wide mb-1.5">Daily Overview</p>
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            {dailyForecasts.map((day) => (
+              <div
+                key={day.label}
+                className="flex flex-col items-center bg-stone-800 rounded-lg px-2 py-1.5 min-w-[52px] flex-shrink-0"
+              >
+                <p className="text-[10px] text-stone-500 font-medium leading-tight">
+                  {day.label.split(',')[0]}
+                </p>
+                <span
+                  className="text-xl leading-tight my-0.5"
+                  role="img"
+                  aria-label={day.shortForecast}
+                >
+                  {day.icon}
+                </span>
+                <p className="text-[10px] font-bold text-stone-100 leading-tight">
+                  {day.highF !== null ? `${day.highF}°` : '–'}
+                </p>
+                <p className="text-[10px] text-stone-500 leading-tight">
+                  {day.lowF !== null ? `${day.lowF}°` : '–'}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       )}

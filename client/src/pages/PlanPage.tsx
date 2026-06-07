@@ -188,8 +188,8 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
 
       {/* ── DESKTOP layout (md and up) ── */}
       <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* Left panel — search + trails only */}
-        <div className="w-72 flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden">
+        {/* Left panel — search + trails; expands when a trail is selected */}
+        <div className={`flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300 ${loadedTrail ? 'w-[420px]' : 'w-72'}`}>
           <div className="flex-shrink-0 border-b border-stone-800">
             <SmartSearch />
           </div>
@@ -208,33 +208,34 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           </div>
         </div>
 
-        {/* Center: Map */}
-        <div className="flex-1 overflow-hidden relative">
+        {/* Center: Map — shrinks when a trail is selected to give more room to panels */}
+        <div className={`overflow-hidden relative transition-all duration-300 ${loadedTrail ? 'w-[320px] flex-shrink-0' : 'flex-1'}`}>
           <TrailMap />
           <div className="absolute bottom-4 right-4 bg-stone-900/80 rounded-lg px-3 py-1.5 text-xs text-stone-400 backdrop-blur-sm border border-stone-800">
             Click map to add route waypoints
           </div>
         </div>
 
-        {/* Right panel — dates + 3 tabs */}
-        <div className="w-80 flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden">
-          {/* Mini tabs */}
-          <div className="flex border-b border-stone-800 flex-shrink-0">
+        {/* Right panel — weather/packing/campsites tabs; slightly wider */}
+        <div className="w-96 flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden">
+          {/* Tab bar with improved styling */}
+          <div className="flex border-b border-stone-800 flex-shrink-0 bg-stone-900/50">
             {([
-              { id: 'weather',   label: '🌤 Weather' },
-              { id: 'packing',   label: '🎒 Packing List' },
-              { id: 'campsites', label: '⛺ Campsites' },
-              { id: 'emergency', label: '🚨 Emergency' },
+              { id: 'weather',   label: 'Weather',   icon: '🌤' },
+              { id: 'packing',   label: 'Gear',      icon: '🎒' },
+              { id: 'campsites', label: 'Camps',     icon: '⛺' },
+              { id: 'emergency', label: 'SOS',       icon: '🚨' },
             ] as const).map((tab) => (
               <button key={tab.id} onClick={() => setRightTab(tab.id)}
-                className={`flex-1 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+                className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${
                   rightTab === tab.id
                     ? tab.id === 'emergency'
-                      ? 'text-red-400 border-b-2 border-red-500 bg-stone-900'
-                      : 'text-forest-400 border-b-2 border-forest-500 bg-stone-900'
-                    : 'text-stone-500 hover:text-stone-300'
+                      ? 'text-red-400 border-b-2 border-red-500 bg-stone-950/60'
+                      : 'text-forest-400 border-b-2 border-forest-500 bg-stone-950/60'
+                    : 'text-stone-500 hover:text-stone-300 hover:bg-stone-800/40 border-b-2 border-transparent'
                 }`}>
-                {tab.label}
+                <span className="text-base leading-none">{tab.icon}</span>
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>

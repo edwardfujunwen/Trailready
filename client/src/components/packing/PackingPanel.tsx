@@ -23,6 +23,7 @@ export default function PackingPanel() {
     let low = 0, high = 0, count = 0;
     for (const cat of list.categories) {
       for (const item of cat.items) {
+        if (item.checked) continue;
         if (!item.priceRangeUsd) continue;
         const match = item.priceRangeUsd.match(/\$?([\d.]+)[–\-]([\d.]+)/);
         if (match) {
@@ -168,7 +169,7 @@ export default function PackingPanel() {
         <div className="flex-shrink-0 border-t border-stone-800 px-4 py-3 bg-stone-900/80 no-print">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-stone-500">Estimated gear budget</p>
+              <p className="text-xs text-stone-500">Remaining gear budget</p>
               <p className="text-sm font-bold text-stone-100">
                 ${budgetRange.low.toLocaleString()} – ${budgetRange.high.toLocaleString()}
               </p>

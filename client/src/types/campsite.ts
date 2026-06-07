@@ -8,6 +8,7 @@ export interface Campground {
   imageUrl?: string;
   availableSites?: AvailableSite[];
   availabilityChecked?: boolean;
+  source?: 'recreation.gov' | 'other';
 }
 
 export interface AvailableSite {
