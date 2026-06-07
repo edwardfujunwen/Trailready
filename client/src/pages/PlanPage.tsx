@@ -77,8 +77,8 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSavedTrips, setShowSavedTrips] = useState(false);
   const [showBriefing, setShowBriefing] = useState(false);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
   const loadedTrail = useTrailStore((s) => s.loadedTrail);
@@ -235,15 +235,18 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           </div>
         </div>
 
-        {/* Left toggle button */}
+        {/* Left toggle button — visible tab on map edge */}
         <button
           onClick={() => setLeftOpen(o => !o)}
-          className="flex-shrink-0 w-5 flex items-center justify-center bg-stone-900 hover:bg-stone-800 border-r border-stone-800 transition-colors z-10"
+          className="flex-shrink-0 w-8 flex flex-col items-center justify-center gap-1 bg-stone-900 hover:bg-stone-800 border-r border-stone-800 transition-colors z-10 group"
           title={leftOpen ? 'Collapse trails panel' : 'Expand trails panel'}
         >
-          <svg className="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-stone-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={leftOpen ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
           </svg>
+          <span className="text-[9px] text-stone-500 group-hover:text-stone-300 font-medium uppercase tracking-wide [writing-mode:vertical-lr] rotate-180">
+            {leftOpen ? 'Close' : 'Trails'}
+          </span>
         </button>
 
         {/* Center: Map — always flex-1, map fills remaining space */}
@@ -251,15 +254,18 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           <TrailMap />
         </div>
 
-        {/* Right toggle button */}
+        {/* Right toggle button — visible tab on map edge */}
         <button
           onClick={() => setRightOpen(o => !o)}
-          className="flex-shrink-0 w-5 flex items-center justify-center bg-stone-900 hover:bg-stone-800 border-l border-stone-800 transition-colors z-10"
+          className="flex-shrink-0 w-8 flex flex-col items-center justify-center gap-1 bg-stone-900 hover:bg-stone-800 border-l border-stone-800 transition-colors z-10 group"
           title={rightOpen ? 'Collapse info panel' : 'Expand info panel'}
         >
-          <svg className="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-stone-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={rightOpen ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
           </svg>
+          <span className="text-[9px] text-stone-500 group-hover:text-stone-300 font-medium uppercase tracking-wide [writing-mode:vertical-lr] rotate-180">
+            {rightOpen ? 'Close' : 'Info'}
+          </span>
         </button>
 
         {/* Right panel — collapsible */}
