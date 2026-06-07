@@ -213,7 +213,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
       {/* ── DESKTOP layout (md and up) ── */}
       <div className="hidden md:flex flex-1 overflow-hidden">
         {/* Left panel — search + trails; expands when a trail is selected */}
-        <div className={`flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300 ${loadedTrail ? 'w-[420px]' : 'w-72'}`}>
+        <div className={`flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300 ${loadedTrail ? 'w-[400px]' : 'w-80'}`}>
           <div className="flex-shrink-0 border-b border-stone-800">
             <SmartSearch />
           </div>
@@ -234,12 +234,12 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
         </div>
 
         {/* Center: Map — shrinks when a trail is selected to give more room to panels */}
-        <div className={`overflow-hidden relative transition-all duration-300 ${loadedTrail ? 'w-[320px] flex-shrink-0' : 'flex-1'}`}>
+        <div className={`overflow-hidden relative transition-all duration-300 ${loadedTrail ? 'w-[380px] flex-shrink-0' : 'flex-1'}`}>
           <TrailMap />
         </div>
 
         {/* Right panel — weather/packing/campsites/group tabs */}
-        <div className="w-96 flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden">
+        <div className="w-80 flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden">
           {/* Tab bar */}
           <div className="flex border-b border-stone-800 flex-shrink-0">
             {([
