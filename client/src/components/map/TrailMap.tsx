@@ -39,8 +39,8 @@ const loadedTrailLayer: LayerProps = {
   },
 };
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string;
-const MAP_STYLE = MAPBOX_TOKEN
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+const MAP_STYLE = (MAPBOX_TOKEN && MAPBOX_TOKEN.startsWith('pk.'))
   ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12?access_token=${MAPBOX_TOKEN}`
   : 'https://tiles.openfreemap.org/styles/liberty';
 
