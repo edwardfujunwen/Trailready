@@ -127,6 +127,15 @@ export default function TrailMap() {
 
   const emptyGeoJSON: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
+  const transformRequest = MAPBOX_TOKEN
+    ? (url: string) => {
+        if (url.startsWith('https://api.mapbox.com') || url.startsWith('https://events.mapbox.com')) {
+          return { url: url.includes('?') ? `${url}&access_token=${MAPBOX_TOKEN}` : `${url}?access_token=${MAPBOX_TOKEN}` };
+        }
+        return { url };
+      }
+    : undefined;
+
   return (
     <div className="relative w-full h-full">
       <Map
@@ -136,6 +145,7 @@ export default function TrailMap() {
         mapStyle={MAP_STYLE}
         onClick={handleMapClick}
         cursor={location ? 'crosshair' : 'default'}
+        transformRequest={transformRequest}
       >
         <NavigationControl position="top-right" />
 
