@@ -77,8 +77,8 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSavedTrips, setShowSavedTrips] = useState(false);
   const [showBriefing, setShowBriefing] = useState(false);
-  const [leftExpanded, setLeftExpanded] = useState(false);
-  const [rightExpanded, setRightExpanded] = useState(false);
+  const [leftExpanded, setLeftExpanded] = useState(true);
+  const [rightExpanded, setRightExpanded] = useState(true);
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
   const loadedTrail = useTrailStore((s) => s.loadedTrail);
@@ -216,7 +216,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
       <div className="hidden md:flex flex-1 overflow-hidden">
 
         {/* Left panel — normal or expanded */}
-        <div className={`flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300 ${leftExpanded ? 'w-[480px]' : 'w-80'}`}>
+        <div className={`flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300 ${leftExpanded ? 'w-80' : 'w-[480px]'}`}>
           <div className="flex-shrink-0 border-b border-stone-800">
             <SmartSearch />
           </div>
@@ -263,7 +263,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
         </button>
 
         {/* Right panel — normal or expanded */}
-        <div className={`flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden transition-all duration-300 ${rightExpanded ? 'w-[480px]' : 'w-80'}`}>
+        <div className={`flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden transition-all duration-300 ${rightExpanded ? 'w-80' : 'w-[480px]'}`}>
           {/* Bear canister / permit alerts */}
           <RequirementsAlert />
           {/* Tab bar */}
