@@ -216,7 +216,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
       <div className="hidden md:flex flex-1 overflow-hidden">
 
         {/* Left panel — normal or expanded */}
-        <div className="flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300" style={{ width: leftExpanded ? '320px' : '480px' }}>
+        <div className="flex-shrink-0 flex flex-col border-r border-stone-800 overflow-hidden transition-all duration-300" style={{ width: leftExpanded ? '480px' : '280px' }}>
           <div className="flex-shrink-0 border-b border-stone-800">
             <SmartSearch />
           </div>
@@ -242,7 +242,7 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           title={leftExpanded ? 'Shrink panel' : 'Expand panel'}
         >
           <svg className="w-3 h-3 text-stone-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={leftExpanded ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={leftExpanded ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
           </svg>
         </button>
 
@@ -258,12 +258,12 @@ export default function PlanPage({ onGoHome }: { onGoHome?: () => void }) {
           title={rightExpanded ? 'Shrink panel' : 'Expand panel'}
         >
           <svg className="w-3 h-3 text-stone-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={rightExpanded ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={rightExpanded ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
           </svg>
         </button>
 
         {/* Right panel — normal or expanded */}
-        <div className="flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden transition-all duration-300" style={{ width: rightExpanded ? '320px' : '480px' }}>
+        <div className="flex-shrink-0 flex flex-col border-l border-stone-800 overflow-hidden transition-all duration-300" style={{ width: rightExpanded ? '480px' : '280px' }}>
           {/* Bear canister / permit alerts */}
           <RequirementsAlert />
           {/* Tab bar */}
