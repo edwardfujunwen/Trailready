@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react';
 /// <reference types="vite/client" />
+import mapboxgl from 'mapbox-gl';
 import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl';
 import type { LayerProps } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -129,6 +130,7 @@ export default function TrailMap() {
     <div className="relative w-full h-full">
       <Map
         ref={mapRef}
+        mapLib={mapboxgl as any}
         initialViewState={{ longitude: -119.5383, latitude: 37.8651, zoom: 7 }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={MAP_STYLE}
