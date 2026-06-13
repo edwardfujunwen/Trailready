@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback, useMemo } from 'react';
 import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl/maplibre';
 import type { LayerProps } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+/// <reference types="vite/client" />
 import { useTripStore } from '../../store/useTripStore';
 import { useTrailStore } from '../../store/useTrailStore';
 import { useCampsiteStore } from '../../store/useCampsiteStore';
@@ -38,7 +39,10 @@ const loadedTrailLayer: LayerProps = {
   },
 };
 
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string;
+const MAP_STYLE = MAPBOX_TOKEN
+  ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12?access_token=${MAPBOX_TOKEN}`
+  : 'https://tiles.openfreemap.org/styles/liberty';
 
 export default function TrailMap() {
   useWeather();
