@@ -1,8 +1,8 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react';
-import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl/maplibre';
-import type { LayerProps } from 'react-map-gl/maplibre';
-import 'maplibre-gl/dist/maplibre-gl.css';
 /// <reference types="vite/client" />
+import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl';
+import type { LayerProps } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { useTripStore } from '../../store/useTripStore';
 import { useTrailStore } from '../../store/useTrailStore';
 import { useCampsiteStore } from '../../store/useCampsiteStore';
@@ -40,9 +40,7 @@ const loadedTrailLayer: LayerProps = {
 };
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
-const MAP_STYLE = (MAPBOX_TOKEN && MAPBOX_TOKEN.startsWith('pk.'))
-  ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12?access_token=${MAPBOX_TOKEN}`
-  : 'https://tiles.openfreemap.org/styles/liberty';
+const MAP_STYLE = 'mapbox://styles/mapbox/outdoors-v12';
 
 export default function TrailMap() {
   useWeather();
@@ -127,15 +125,6 @@ export default function TrailMap() {
 
   const emptyGeoJSON: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
-  const transformRequest = MAPBOX_TOKEN
-    ? (url: string) => {
-        if (url.startsWith('https://api.mapbox.com') || url.startsWith('https://events.mapbox.com')) {
-          return { url: url.includes('?') ? `${url}&access_token=${MAPBOX_TOKEN}` : `${url}?access_token=${MAPBOX_TOKEN}` };
-        }
-        return { url };
-      }
-    : undefined;
-
   return (
     <div className="relative w-full h-full">
       <Map
@@ -143,9 +132,9 @@ export default function TrailMap() {
         initialViewState={{ longitude: -119.5383, latitude: 37.8651, zoom: 7 }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={MAP_STYLE}
+        mapboxAccessToken={MAPBOX_TOKEN}
         onClick={handleMapClick}
         cursor={location ? 'crosshair' : 'default'}
-        transformRequest={transformRequest}
       >
         <NavigationControl position="top-right" />
 
