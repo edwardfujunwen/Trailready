@@ -348,9 +348,11 @@ app.get('/api/osm/trails', async (req, res) => {
     // Sort by proximity, filter, build final response
     const trails = Array.from(byName.values())
       .map(t => {
-        const dist = haversineMi(t.coords);
+        const onewayDist = haversineMi(t.coords);
         const type = routeType(t.coords);
-        return { ...t, distanceMi: parseFloat(dist.toFixed(2)), routeType: type };
+        // Out & Back: total hiking distance is double the one-way geometry
+        const totalDist = type === 'Out & Back' ? onewayDist * 2 : onewayDist;
+        return { ...t, distanceMi: parseFloat(totalDist.toFixed(2)), routeType: type };
       })
       .filter(t => t.distanceMi >= 0.1)
       .sort((a, b) => {
