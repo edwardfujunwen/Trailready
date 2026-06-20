@@ -384,7 +384,7 @@ app.get('/api/osm/trail-geom', async (req, res) => {
     ');out geom;';
 
   try {
-    const data = await overpassQuery(query);
+    const data = await overpassQuerySeq(query);
     const elements = data.elements || [];
 
     // Extract raw way segments from ways and relation members
@@ -470,6 +470,19 @@ async function overpassQuery(query: string): Promise<any> {
   return Promise.any(OVERPASS_MIRRORS.map((url) => httpsPost(url, body, 20000)));
 }
 
+// Sequential fallback — tries each server in order, returns first with actual elements.
+// Use this for geometry where we need complete data, not just fast data.
+async function overpassQuerySeq(query: string): Promise<any> {
+  const body = `data=${encodeURIComponent(query)}`;
+  for (const url of OVERPASS_MIRRORS) {
+    try {
+      const data = await httpsPost(url, body, 25000);
+      if (data?.elements?.length > 0) return data;
+    } catch { /* try next */ }
+  }
+  throw new Error('All Overpass mirrors failed or returned empty');
+}
+
 // Fast trail list — tags + center only, no geometry. Cached per location.
 app.get('/api/trails', async (req, res) => {
   const { lat, lon } = req.query as { lat?: string; lon?: string };
@@ -500,9 +513,9 @@ app.get('/api/trails/byname', async (req, res) => {
 
   // Targeted query — search by name near location. Much faster than area scan.
   const safeName = name.replace(/"/g, '');
-  const query = `[out:json][timeout:12];relation["route"="hiking"]["name"~"${safeName}",i](around:30000,${lat},${lon});out geom;`;
+  const query = `[out:json][timeout:20];relation["route"="hiking"]["name"~"${safeName}",i](around:30000,${lat},${lon});out geom;`;
   try {
-    const data = await overpassQuery(query);
+    const data = await overpassQuerySeq(query);
     trailCache.set(cacheKey, { data, ts: Date.now() });
     res.json(data);
   } catch {
