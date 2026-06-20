@@ -192,7 +192,7 @@ export default function TrailDetailPanel({ trail }: Props) {
 
       {/* Elevation Profile Chart */}
       {elevCoords && elevCoords.length >= 2 && (
-        <ElevationChart coordinates={elevCoords} totalDistanceMi={trail.distanceMi} />
+        <ElevationChart coordinates={elevCoords} totalDistanceMi={trail.distanceMi} routeType={trail.routeType} />
       )}
 
       {/* Key stats grid */}

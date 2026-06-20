@@ -11,6 +11,7 @@ interface ElevationPoint {
 interface Props {
   coordinates: [number, number][]; // [lon, lat] pairs
   totalDistanceMi?: number;
+  routeType?: string;
 }
 
 // Given a fraction along the trail (0–1), interpolate lat/lon from the coordinate array
@@ -44,7 +45,7 @@ function interpolatePoint(coords: [number, number][], fraction: number): { lat: 
   return { lat: coords[coords.length - 1][1], lon: coords[coords.length - 1][0] };
 }
 
-export default function ElevationChart({ coordinates, totalDistanceMi }: Props) {
+export default function ElevationChart({ coordinates, totalDistanceMi, routeType }: Props) {
   const [profile, setProfile] = useState<ElevationPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -57,7 +58,7 @@ export default function ElevationChart({ coordinates, totalDistanceMi }: Props) 
     fetch(`${API_BASE}/api/elevation/profile`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ coordinates, totalDistanceMi }),
+      body: JSON.stringify({ coordinates, totalDistanceMi, routeType }),
     })
       .then(r => r.json())
       .then(d => {
@@ -91,7 +92,15 @@ export default function ElevationChart({ coordinates, totalDistanceMi }: Props) 
     const idx = state?.activeTooltipIndex;
     if (idx == null || idx < 0 || idx >= profile.length) return;
     const distMi = profile[idx].distanceMi;
-    const fraction = totalDist > 0 ? distMi / totalDist : 0;
+    // For Out & Back: fold return leg back toward the start
+    const isOutAndBack = routeType === 'Out & Back';
+    const onewayDist = isOutAndBack ? totalDist / 2 : totalDist;
+    let fraction: number;
+    if (isOutAndBack && distMi > onewayDist) {
+      fraction = (totalDist - distMi) / onewayDist; // return leg: count back from turnaround
+    } else {
+      fraction = onewayDist > 0 ? distMi / onewayDist : 0;
+    }
     const point = interpolatePoint(coordinates, fraction);
     setElevHoverPoint(point);
   };

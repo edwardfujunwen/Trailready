@@ -1158,13 +1158,17 @@ app.get('/api/backcountryski/detail', async (req, res) => {
 // ── Elevation Profile ─────────────────────────────────────────────────────────
 
 app.post('/api/elevation/profile', async (req, res) => {
-  const { coordinates } = req.body as { coordinates: [number, number][] };
+  const { coordinates, routeType } = req.body as { coordinates: [number, number][]; totalDistanceMi?: number; routeType?: string };
   if (!coordinates || !Array.isArray(coordinates) || coordinates.length === 0) {
     return res.status(400).json({ error: 'coordinates array required' });
   }
 
-  // Sample up to 25 evenly-spaced points to avoid hammering the API
-  const MAX_POINTS = 25;
+  const isOutAndBack = routeType === 'Out & Back';
+  const totalDistanceMi: number = req.body.totalDistanceMi || 5;
+  const onewayDist = isOutAndBack ? totalDistanceMi / 2 : totalDistanceMi;
+
+  // Sample up to 20 evenly-spaced points along the one-way geometry
+  const MAX_POINTS = 20;
   const step = Math.max(1, Math.floor(coordinates.length / MAX_POINTS));
   const sampled = coordinates.filter((_, i) => i % step === 0).slice(0, MAX_POINTS);
 
@@ -1177,11 +1181,25 @@ app.post('/api/elevation/profile', async (req, res) => {
       signal: AbortSignal.timeout(10000),
     });
     const data = await resp.json() as any;
-    const profile = (data.results || []).map((r: any, i: number) => ({
-      distanceMi: parseFloat(((i / (sampled.length - 1)) * (req.body.totalDistanceMi || 5)).toFixed(2)),
-      elevationFt: Math.round(r.elevation * 3.281),
+    const elevations: number[] = (data.results || []).map((r: any) => Math.round(r.elevation * 3.281));
+
+    // Build profile: map each sample to its distance along the one-way route
+    const outLeg = elevations.map((elevationFt, i) => ({
+      distanceMi: parseFloat(((i / (sampled.length - 1)) * onewayDist).toFixed(2)),
+      elevationFt,
     }));
-    res.json({ profile });
+
+    if (!isOutAndBack) {
+      return res.json({ profile: outLeg });
+    }
+
+    // Out & Back: append reversed return leg (skip duplicate turnaround point)
+    const returnLeg = [...elevations].reverse().slice(1).map((elevationFt, i) => ({
+      distanceMi: parseFloat((onewayDist + ((i + 1) / (sampled.length - 1)) * onewayDist).toFixed(2)),
+      elevationFt,
+    }));
+
+    res.json({ profile: [...outLeg, ...returnLeg] });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
