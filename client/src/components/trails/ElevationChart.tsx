@@ -87,8 +87,10 @@ export default function ElevationChart({ coordinates, totalDistanceMi }: Props) 
   const gain = maxElev - minElev;
 
   const handleMouseMove = (state: any) => {
-    if (!state?.activePayload?.[0] || !coordinates?.length) return;
-    const distMi = state.activePayload[0].payload.distanceMi as number;
+    if (!coordinates?.length) return;
+    const idx = state?.activeTooltipIndex;
+    if (idx == null || idx < 0 || idx >= profile.length) return;
+    const distMi = profile[idx].distanceMi;
     const fraction = totalDist > 0 ? distMi / totalDist : 0;
     const point = interpolatePoint(coordinates, fraction);
     setElevHoverPoint(point);

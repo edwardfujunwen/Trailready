@@ -4,6 +4,28 @@ import { useTrailStore } from '../../store/useTrailStore';
 import ElevationChart from './ElevationChart';
 import { API_BASE } from '../../api/base';
 
+function toUTM(lat: number, lon: number): string {
+  const a = 6378137, f = 1 / 298.257223563;
+  const b = a * (1 - f), e2 = 1 - (b * b) / (a * a);
+  const zone = Math.floor((lon + 180) / 6) + 1;
+  const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+  const latR = lat * Math.PI / 180;
+  const N = a / Math.sqrt(1 - e2 * Math.sin(latR) ** 2);
+  const T = Math.tan(latR) ** 2, C = (e2 / (1 - e2)) * Math.cos(latR) ** 2;
+  const A = Math.cos(latR) * ((lon * Math.PI / 180) - lon0);
+  const e4 = e2 * e2, e6 = e4 * e2;
+  const M = a * ((1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256) * latR
+    - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024) * Math.sin(2 * latR)
+    + (15 * e4 / 256 + 45 * e6 / 1024) * Math.sin(4 * latR)
+    - (35 * e6 / 3072) * Math.sin(6 * latR));
+  const x = 0.9996 * N * (A + (1 - T + C) * A ** 3 / 6 + (5 - 18 * T + T * T + 72 * C - 58) * A ** 5 / 120) + 500000;
+  const y = 0.9996 * (M + N * Math.tan(latR) * (A ** 2 / 2 + (5 - T + 9 * C + 4 * C * C) * A ** 4 / 24
+    + (61 - 58 * T + T * T + 600 * C - 330) * A ** 6 / 720)) + (lat < 0 ? 10000000 : 0);
+  const letters = 'CDEFGHJKLMNPQRSTUVWXX';
+  const band = letters[Math.floor((lat + 80) / 8)];
+  return `${zone}${band} ${Math.round(x)} ${Math.round(y)}`;
+}
+
 interface TrailDetail {
   name: string;
   // Real data
@@ -255,16 +277,17 @@ export default function TrailDetailPanel({ trail }: Props) {
           <div className="px-3 py-2 border-t border-stone-800">
             <p className="text-[10px] text-stone-600 uppercase tracking-wide mb-2">Trailhead</p>
             <div className="bg-stone-800/50 rounded-lg p-2 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-stone-500 mb-0.5">GPS Coordinates</p>
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1">
+                  <p className="text-[10px] text-stone-500">GPS Coordinates</p>
                   <p className="text-xs font-mono text-stone-200">{latStr}, {lonStr}</p>
+                  <p className="text-xs font-mono text-stone-400">UTM {toUTM(lat, lon)}</p>
                 </div>
                 <a
                   href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] text-blue-400 hover:text-blue-300 bg-blue-950/40 border border-blue-800/40 rounded px-2 py-1 transition-colors"
+                  className="flex-shrink-0 text-[10px] text-blue-400 hover:text-blue-300 bg-blue-950/40 border border-blue-800/40 rounded px-2 py-1 transition-colors"
                 >
                   Open in Maps →
                 </a>
