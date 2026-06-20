@@ -370,49 +370,87 @@ app.get('/api/osm/trail-geom', async (req, res) => {
   const { name, lat, lon } = req.query as Record<string, string>;
   if (!name || !lat || !lon) return res.status(400).json({ error: 'name, lat, lon required' });
 
+  const cacheKey = `geom:${name.toLowerCase()}:${parseFloat(lat).toFixed(2)},${parseFloat(lon).toFixed(2)}`;
+  const cached = trailCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < CACHE_TTL) return res.json(cached.data);
+
   const delta = 0.35;
   const bbox = `${parseFloat(lat) - delta},${parseFloat(lon) - delta},${parseFloat(lat) + delta},${parseFloat(lon) + delta}`;
 
   const safeName = name.replace(/"/g, '\\"');
-  const query = '[out:json][timeout:15];(' +
+  const query = '[out:json][timeout:20];(' +
     'way["highway"~"path|track|footway"]["name"="' + safeName + '"](' + bbox + ');' +
     'relation["route"="hiking"]["name"="' + safeName + '"](' + bbox + ');' +
     ');out geom;';
 
   try {
-    const resp = await fetch('https://overpass.openstreetmap.fr/api/interpreter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'data=' + encodeURIComponent(query),
-      signal: AbortSignal.timeout(18000),
-    });
-    const data = await resp.json() as any;
+    const data = await overpassQuery(query);
     const elements = data.elements || [];
 
-    // Collect all coordinates into one LineString
-    const coords: [number, number][] = [];
-    for (const el of elements) {
-      if (el.type === 'way' && el.geometry) {
-        coords.push(...el.geometry.map((g: any) => [g.lon, g.lat]));
-      } else if (el.type === 'relation' && el.members) {
-        for (const m of el.members) {
-          if (m.type === 'way' && m.geometry) {
-            coords.push(...m.geometry.map((g: any) => [g.lon, g.lat]));
+    // Extract raw way segments from ways and relation members
+    type Seg = [number, number][];
+    const segments: Seg[] = [];
+
+    // Prefer relation members (they're ordered); fall back to raw ways
+    const relations = elements.filter((e: any) => e.type === 'relation' && e.members);
+    if (relations.length > 0) {
+      for (const rel of relations) {
+        for (const m of rel.members) {
+          if (m.type === 'way' && m.geometry?.length >= 2) {
+            segments.push(m.geometry.map((g: any) => [g.lon, g.lat] as [number, number]));
           }
+        }
+      }
+    } else {
+      for (const el of elements) {
+        if (el.type === 'way' && el.geometry?.length >= 2) {
+          segments.push(el.geometry.map((g: any) => [g.lon, g.lat] as [number, number]));
         }
       }
     }
 
-    if (coords.length < 2) return res.status(404).json({ error: 'Trail geometry not found' });
+    if (segments.length === 0) return res.status(404).json({ error: 'Trail geometry not found' });
 
-    res.json({
+    // Stitch segments end-to-end, flipping any that connect in reverse
+    function ptKey(p: [number, number]) { return `${p[0].toFixed(5)},${p[1].toFixed(5)}`; }
+    function dist2(a: [number, number], b: [number, number]) {
+      return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+    }
+
+    const chain: [number, number][] = [...segments[0]];
+    const remaining = segments.slice(1);
+
+    while (remaining.length > 0) {
+      const chainEnd = chain[chain.length - 1];
+      let bestIdx = -1, bestDist = Infinity, bestFlip = false;
+
+      for (let i = 0; i < remaining.length; i++) {
+        const seg = remaining[i];
+        const dStart = dist2(chainEnd, seg[0]);
+        const dEnd = dist2(chainEnd, seg[seg.length - 1]);
+        if (dStart < bestDist) { bestDist = dStart; bestIdx = i; bestFlip = false; }
+        if (dEnd < bestDist) { bestDist = dEnd; bestIdx = i; bestFlip = true; }
+      }
+
+      const seg = remaining.splice(bestIdx, 1)[0];
+      const oriented = bestFlip ? [...seg].reverse() : seg;
+      // Skip duplicate endpoint
+      chain.push(...oriented.slice(1));
+    }
+
+    if (chain.length < 2) return res.status(404).json({ error: 'Trail geometry not found' });
+
+    const geojson = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
         properties: { name },
-        geometry: { type: 'LineString', coordinates: coords },
+        geometry: { type: 'LineString', coordinates: chain },
       }],
-    });
+    };
+
+    trailCache.set(cacheKey, { data: geojson, ts: Date.now() });
+    res.json(geojson);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
