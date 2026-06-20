@@ -78,6 +78,9 @@ export default function TripBriefing({ onClose }: TripBriefingProps) {
   const periods = useWeatherStore((s) => s.periods);
   const packingList = usePackingStore((s) => s.list);
 
+  const [showShare, setShowShare] = useState(false);
+  const [shareEmails, setShareEmails] = useState('');
+
   // Local editable state for group members
   const [localMembers, setLocalMembers] = useState<string[]>(
     groupMembers.length > 0 ? groupMembers : ['']
@@ -115,6 +118,59 @@ export default function TripBriefing({ onClose }: TripBriefingProps) {
   const tripTitle = location
     ? `${location.name} ${TRIP_TYPE_LABELS[tripType] ?? tripType} Trip`
     : 'Trip Briefing';
+
+  const handleShare = useCallback(() => {
+    const emails = shareEmails.split(/[,;\s]+/).map(e => e.trim()).filter(Boolean).join(',');
+    if (!emails) return;
+    const lines: string[] = [];
+    lines.push(`TRIP BRIEFING: ${tripTitle.toUpperCase()}`);
+    lines.push('='.repeat(50));
+    lines.push('');
+    if (checkin && checkout) lines.push(`Dates: ${formatDate(checkin)} – ${formatDate(checkout)}`);
+    lines.push(`Group Size: ${groupSize} ${groupSize === 1 ? 'person' : 'people'}`);
+    if (loadedTrail) lines.push(`Trail: ${loadedTrail.name}${loadedTrail.distanceMi ? ` (${loadedTrail.distanceMi.toFixed(1)} mi)` : ''}`);
+    lines.push('');
+    if (trailheadCoords) {
+      const { lat, lon } = trailheadCoords;
+      const latStr = Math.abs(lat).toFixed(5) + (lat >= 0 ? '° N' : '° S');
+      const lonStr = Math.abs(lon).toFixed(5) + (lon >= 0 ? '° E' : '° W');
+      lines.push('TRAILHEAD');
+      lines.push('-'.repeat(30));
+      lines.push(`GPS: ${latStr}, ${lonStr}`);
+      lines.push(`UTM: ${toUTM(lat, lon)}`);
+      lines.push(`Google Maps: https://www.google.com/maps?q=${lat},${lon}`);
+      if (parkingNotes) lines.push(`Parking: ${parkingNotes}`);
+      lines.push('');
+    }
+    if (localMembers.filter(Boolean).length > 0) {
+      lines.push('GROUP MEMBERS');
+      lines.push('-'.repeat(30));
+      localMembers.filter(Boolean).forEach((m, i) => lines.push(`${i + 1}. ${m}`));
+      lines.push('');
+    }
+    if (summary) {
+      lines.push('WEATHER FORECAST');
+      lines.push('-'.repeat(30));
+      lines.push(`High: ${summary.tempHighF}°F  Low: ${summary.tempLowF}°F`);
+      lines.push(`Rain Risk: ${summary.precipRisk}  Wind: ${summary.windSpeed}`);
+      if (summary.conditions) lines.push(`Conditions: ${summary.conditions}`);
+      lines.push('');
+    }
+    lines.push('ITINERARY');
+    lines.push('-'.repeat(30));
+    itinerary.forEach(d => lines.push(`${d.day}: ${d.title} — ${d.notes}`));
+    lines.push('');
+    lines.push('EMERGENCY');
+    lines.push('-'.repeat(30));
+    lines.push('911 (general) | Search & Rescue: local ranger district | Poison Control: 1-800-222-1222');
+    lines.push('');
+    lines.push('— Sent from TrailReady (trailready-8n8b.onrender.com)');
+    const subject = encodeURIComponent(`Trip Briefing: ${tripTitle}`);
+    const body = encodeURIComponent(lines.join('\n'));
+    window.location.href = `mailto:${emails}?subject=${subject}&body=${body}`;
+    setShowShare(false);
+    setShareEmails('');
+  }, [shareEmails, tripTitle, checkin, checkout, groupSize, loadedTrail, trailheadCoords, parkingNotes, localMembers, summary, itinerary]);
 
   // Upcoming forecast periods for display (up to 6)
   const forecastDays = periods.filter((p) => p.isDaytime).slice(0, 6);
@@ -175,6 +231,48 @@ export default function TripBriefing({ onClose }: TripBriefingProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Share popover */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowShare(s => !s)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-blue-700 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Share
+                </button>
+                {showShare && (
+                  <div className="absolute right-0 top-10 z-10 w-72 bg-stone-800 border border-stone-700 rounded-xl shadow-2xl p-4">
+                    <p className="text-xs font-semibold text-stone-300 mb-1">Share Trip Briefing</p>
+                    <p className="text-[10px] text-stone-500 mb-3">Enter email addresses separated by commas. Your email app will open with the briefing pre-filled.</p>
+                    <input
+                      type="text"
+                      value={shareEmails}
+                      onChange={e => setShareEmails(e.target.value)}
+                      placeholder="friend@gmail.com, partner@gmail.com"
+                      className="w-full bg-stone-900 border border-stone-600 rounded-lg px-3 py-2 text-xs text-stone-100 placeholder-stone-600 focus:outline-none focus:border-blue-500 mb-3"
+                      onKeyDown={e => { if (e.key === 'Enter') handleShare(); }}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleShare}
+                        disabled={!shareEmails.trim()}
+                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs rounded-lg font-medium transition-colors"
+                      >
+                        Open in Email App →
+                      </button>
+                      <button
+                        onClick={() => setShowShare(false)}
+                        className="px-3 py-2 text-xs text-stone-400 hover:text-stone-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={() => window.print()}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-forest-700 hover:bg-forest-600 text-white rounded-lg transition-colors font-medium"
