@@ -32,12 +32,14 @@ interface TrailState {
   nearbyTrails: NearbyTrail[];
   loadingTrails: boolean;
   trailError: string | null;
-  activeParkCode: string | null; // NPS park code when in a national park
+  activeParkCode: string | null;
+  elevHoverPoint: { lat: number; lon: number } | null;
   setLoadedTrail: (trail: LoadedTrail) => void;
   setNearbyTrails: (trails: NearbyTrail[]) => void;
   setLoadingTrails: (loading: boolean) => void;
   setTrailError: (error: string | null) => void;
   setActiveParkCode: (code: string | null) => void;
+  setElevHoverPoint: (point: { lat: number; lon: number } | null) => void;
   clearTrail: () => void;
 }
 
@@ -49,11 +51,13 @@ export const useTrailStore = create<TrailState>()(
       loadingTrails: false,
       trailError: null,
       activeParkCode: null,
+      elevHoverPoint: null,
       setLoadedTrail: (trail) => set({ loadedTrail: trail, trailError: null }),
       setNearbyTrails: (trails) => set({ nearbyTrails: trails }),
       setLoadingTrails: (loading) => set({ loadingTrails: loading }),
       setTrailError: (error) => set({ trailError: error }),
       setActiveParkCode: (code) => set({ activeParkCode: code }),
+      setElevHoverPoint: (point) => set({ elevHoverPoint: point }),
       clearTrail: () => set({ loadedTrail: null }),
     }),
     { name: 'trail-store-v2', partialize: (s) => ({ loadedTrail: s.loadedTrail }) }

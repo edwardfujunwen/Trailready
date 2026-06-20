@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { API_BASE } from '../../api/base';
+import { useTrailStore } from '../../store/useTrailStore';
 
 interface ElevationPoint {
   distanceMi: number;
@@ -12,10 +13,42 @@ interface Props {
   totalDistanceMi?: number;
 }
 
+// Given a fraction along the trail (0–1), interpolate lat/lon from the coordinate array
+function interpolatePoint(coords: [number, number][], fraction: number): { lat: number; lon: number } {
+  if (coords.length === 0) return { lat: 0, lon: 0 };
+  if (fraction <= 0) return { lat: coords[0][1], lon: coords[0][0] };
+  if (fraction >= 1) return { lat: coords[coords.length - 1][1], lon: coords[coords.length - 1][0] };
+
+  // Build cumulative distances
+  const R = 3958.8;
+  const dists: number[] = [0];
+  for (let i = 1; i < coords.length; i++) {
+    const [lon1, lat1] = coords[i - 1];
+    const [lon2, lat2] = coords[i];
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+    dists.push(dists[i - 1] + R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  }
+  const total = dists[dists.length - 1];
+  const target = fraction * total;
+
+  for (let i = 1; i < dists.length; i++) {
+    if (dists[i] >= target) {
+      const t = (target - dists[i - 1]) / (dists[i] - dists[i - 1]);
+      const [lon1, lat1] = coords[i - 1];
+      const [lon2, lat2] = coords[i];
+      return { lat: lat1 + t * (lat2 - lat1), lon: lon1 + t * (lon2 - lon1) };
+    }
+  }
+  return { lat: coords[coords.length - 1][1], lon: coords[coords.length - 1][0] };
+}
+
 export default function ElevationChart({ coordinates, totalDistanceMi }: Props) {
   const [profile, setProfile] = useState<ElevationPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
+  const setElevHoverPoint = useTrailStore((s) => s.setElevHoverPoint);
 
   useEffect(() => {
     if (!coordinates || coordinates.length < 2) return;
@@ -50,7 +83,18 @@ export default function ElevationChart({ coordinates, totalDistanceMi }: Props) 
 
   const minElev = Math.min(...profile.map(p => p.elevationFt));
   const maxElev = Math.max(...profile.map(p => p.elevationFt));
+  const totalDist = profile[profile.length - 1].distanceMi;
   const gain = maxElev - minElev;
+
+  const handleMouseMove = (state: any) => {
+    if (!state?.activePayload?.[0] || !coordinates?.length) return;
+    const distMi = state.activePayload[0].payload.distanceMi as number;
+    const fraction = totalDist > 0 ? distMi / totalDist : 0;
+    const point = interpolatePoint(coordinates, fraction);
+    setElevHoverPoint(point);
+  };
+
+  const handleMouseLeave = () => setElevHoverPoint(null);
 
   return (
     <div className="px-3 py-2 border-t border-stone-800">
@@ -59,7 +103,12 @@ export default function ElevationChart({ coordinates, totalDistanceMi }: Props) 
         <p className="text-[10px] text-stone-500">+{gain.toLocaleString()} ft gain</p>
       </div>
       <ResponsiveContainer width="100%" height={80}>
-        <AreaChart data={profile} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+        <AreaChart
+          data={profile}
+          margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
           <defs>
             <linearGradient id="elevGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
@@ -95,6 +144,7 @@ export default function ElevationChart({ coordinates, totalDistanceMi }: Props) 
             strokeWidth={1.5}
             fill="url(#elevGrad)"
             dot={false}
+            activeDot={{ r: 4, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>

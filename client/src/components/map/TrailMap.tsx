@@ -50,6 +50,7 @@ export default function TrailMap() {
   const waypoints = useTripStore((s) => s.waypoints);
   const addWaypoint = useTripStore((s) => s.addWaypoint);
   const loadedTrail = useTrailStore((s) => s.loadedTrail);
+  const elevHoverPoint = useTrailStore((s) => s.elevHoverPoint);
   const campgrounds = useCampsiteStore((s) => s.campgrounds);
 
   // Derive trailhead coordinates from loaded trail
@@ -199,6 +200,17 @@ export default function TrailMap() {
             </Marker>
           );
         })}
+
+        {/* Elevation chart hover dot */}
+        {elevHoverPoint && (
+          <Marker longitude={elevHoverPoint.lon} latitude={elevHoverPoint.lat} anchor="center">
+            <div style={{
+              width: 14, height: 14, borderRadius: '50%',
+              background: '#22c55e', border: '3px solid #fff',
+              boxShadow: '0 0 0 2px #22c55e, 0 2px 6px rgba(0,0,0,0.5)',
+            }} />
+          </Marker>
+        )}
 
         {/* Manual waypoints + route (orange) */}
         <Source id="waypoints-source" type="geojson" data={waypointGeoJSON}>
