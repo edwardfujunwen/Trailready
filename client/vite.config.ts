@@ -36,6 +36,7 @@ export default defineConfig({
       skipWaiting: true,
       clientsClaim: true,
       workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit to handle mapbox-gl bundle
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
           // Groq API — never cache (always needs live AI)
