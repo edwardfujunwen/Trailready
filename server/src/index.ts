@@ -240,6 +240,10 @@ app.get('/api/osm/trails', async (req, res) => {
   const lon = parseFloat(req.query.lon as string);
   if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat/lon required' });
 
+  const cacheKey = `osm-trails:${lat.toFixed(3)},${lon.toFixed(3)}`;
+  const cached = trailCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < CACHE_TTL) return res.json(cached.data);
+
   // Bounding box ~25 miles around the location
   const delta = 0.35;
   const bbox = `${lat - delta},${lon - delta},${lat + delta},${lon + delta}`;
@@ -251,15 +255,7 @@ app.get('/api/osm/trails', async (req, res) => {
     ');out geom;';
 
   try {
-    const resp = await fetch('https://overpass.openstreetmap.fr/api/interpreter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'data=' + encodeURIComponent(query),
-      signal: AbortSignal.timeout(28000),
-    });
-
-    if (!resp.ok) throw new Error('Overpass error: ' + resp.status);
-    const data = await resp.json() as any;
+    const data = await overpassQuery(query);
     const elements = data.elements || [];
 
     // Calculate distance from OSM geometry (Haversine)
@@ -363,6 +359,7 @@ app.get('/api/osm/trails', async (req, res) => {
       .slice(0, 150)
       .map(({ coords: _coords, isRelation: _r, tags: _t, ...t }) => t);
 
+    trailCache.set(cacheKey, { data: trails, ts: Date.now() });
     res.json(trails);
   } catch (err: any) {
     res.status(500).json({ error: err.message, fallback: true });
