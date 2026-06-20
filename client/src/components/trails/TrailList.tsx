@@ -101,46 +101,23 @@ export default function TrailList() {
     setParkName(null);
 
     try {
-      // ── Step 1: Try OSM first (global coverage, rich attributes) ──
-      try {
-        const osmRes = await fetch(`${API}/api/osm/trails?lat=${location.lat}&lon=${location.lon}`);
-        const osmData = await osmRes.json();
-        if (osmRes.ok && Array.isArray(osmData) && osmData.length > 0) {
-          const trails: NearbyTrail[] = osmData.map((t: any) => ({
-            id: t.id,
-            name: t.name,
-            distanceMi: t.distanceMi,
-            source: 'osm' as const,
-            difficulty: t.difficulty ?? undefined,
-            lat: t.lat,
-            lon: t.lon,
-            routeType: t.routeType ?? undefined,
-          }));
-          setNearbyTrails(trails);
-          setDataSource('osm');
-          setActiveParkCode(null);
-          setLoadingTrails(false);
-          return;
-        }
-      } catch { /* fall through to NPS */ }
+      // ── Run NPS park lookup and OSM in parallel ──
+      const [parkRes, osmRes] = await Promise.allSettled([
+        fetch(`${API}/api/nps/park?lat=${location.lat}&lon=${location.lon}&q=${encodeURIComponent(location.name)}`).then(r => r.json()),
+        fetch(`${API}/api/osm/trails?lat=${location.lat}&lon=${location.lon}`).then(r => r.json()),
+      ]);
 
-      // ── Step 2: OSM returned nothing — check NPS as fallback ──
-      const parkRes = await fetch(
-        `${API}/api/nps/park?lat=${location.lat}&lon=${location.lon}&q=${encodeURIComponent(location.name)}`
-      );
-      const parkData = await parkRes.json();
+      const parkData = parkRes.status === 'fulfilled' ? parkRes.value : null;
+      const osmData = osmRes.status === 'fulfilled' ? osmRes.value : null;
 
-      if (parkData.park) {
+      // ── Prefer NPS if we're in a national park ──
+      if (parkData?.park) {
         const trailsRes = await fetch(`${API}/api/nps/trails?parkCode=${parkData.park.parkCode}`);
         const trailsData = await trailsRes.json();
-
         if (trailsData.trails?.length > 0) {
           const trails: NearbyTrail[] = trailsData.trails.map((t: any) => ({
-            id: t.id,
-            name: t.name,
-            distanceMi: t.distanceMi,
-            source: 'nps' as const,
-            activities: t.activities || [],
+            id: t.id, name: t.name, distanceMi: t.distanceMi,
+            source: 'nps' as const, activities: t.activities || [],
           }));
           setNearbyTrails(trails);
           setDataSource('nps');
@@ -149,6 +126,20 @@ export default function TrailList() {
           setLoadingTrails(false);
           return;
         }
+      }
+
+      // ── Fall back to OSM ──
+      if (Array.isArray(osmData) && osmData.length > 0) {
+        const trails: NearbyTrail[] = osmData.map((t: any) => ({
+          id: t.id, name: t.name, distanceMi: t.distanceMi,
+          source: 'osm' as const, difficulty: t.difficulty ?? undefined,
+          lat: t.lat, lon: t.lon, routeType: t.routeType ?? undefined,
+        }));
+        setNearbyTrails(trails);
+        setDataSource('osm');
+        setActiveParkCode(null);
+        setLoadingTrails(false);
+        return;
       }
 
       // ── Nothing found — show GPX prompt ──

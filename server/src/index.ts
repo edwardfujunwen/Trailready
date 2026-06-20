@@ -25,9 +25,9 @@ function httpsPost(urlStr: string, body: string, timeoutMs = 20000): Promise<any
   });
 }
 
-// Simple in-memory cache for trail results (5 min TTL)
+// In-memory cache — 24h TTL so repeat searches are instant
 const trailCache = new Map<string, { data: any; ts: number }>();
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_TTL = 24 * 60 * 60 * 1000;
 
 // Try multiple .env locations to handle different working directories
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -240,8 +240,8 @@ app.get('/api/osm/trails', async (req, res) => {
   const lon = parseFloat(req.query.lon as string);
   if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat/lon required' });
 
-  // Bounding box ~25 miles around the location
-  const delta = 0.35;
+  // Bounding box ~15 miles around the location (faster query)
+  const delta = 0.22;
   const bbox = `${lat - delta},${lon - delta},${lat + delta},${lon + delta}`;
 
   // Query OSM for hiking paths, tracks, and named footways plus hiking route relations
