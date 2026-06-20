@@ -859,7 +859,10 @@ Return ONLY valid JSON, no markdown, no explanation:
   "permitRequired": false,
   "permitNotes": "any permit or reservation info, or null",
   "wildlife": "notable wildlife to watch for",
-  "warnings": "key hazards or things to know (weather, exposure, water sources etc)"
+  "warnings": "key hazards or things to know (weather, exposure, water sources etc)",
+  "parkingNotes": "name and description of recommended trailhead parking lot or area, include if fee required",
+  "parkingLat": null,
+  "parkingLon": null
 }
 
 If you don't have specific data for this exact trail, provide reasonable estimates based on the trail name, location, and region. Always return valid JSON.`;
@@ -910,6 +913,9 @@ If you don't have specific data for this exact trail, provide reasonable estimat
     permitNotes: ai?.permitNotes ?? null,
     wildlife: ai?.wildlife ?? null,
     warnings: ai?.warnings ?? null,
+    parkingNotes: ai?.parkingNotes ?? null,
+    parkingLat: ai?.parkingLat ?? null,
+    parkingLon: ai?.parkingLon ?? null,
   });
 });
 

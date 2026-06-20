@@ -27,6 +27,9 @@ interface TrailDetail {
   permitNotes?: string | null;
   wildlife?: string | null;
   warnings?: string | null;
+  parkingNotes?: string | null;
+  parkingLat?: number | null;
+  parkingLon?: number | null;
 }
 
 interface TrailPhoto {
@@ -241,6 +244,51 @@ export default function TrailDetailPanel({ trail }: Props) {
           <p className="text-xs text-stone-400">{detail.wildlife}</p>
         </div>
       )}
+
+      {/* Trailhead GPS + Parking */}
+      {elevCoords && elevCoords.length > 0 && (() => {
+        const [lon, lat] = elevCoords[0];
+        const latStr = Math.abs(lat).toFixed(5) + (lat >= 0 ? '° N' : '° S');
+        const lonStr = Math.abs(lon).toFixed(5) + (lon >= 0 ? '° E' : '° W');
+        const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+        return (
+          <div className="px-3 py-2 border-t border-stone-800">
+            <p className="text-[10px] text-stone-600 uppercase tracking-wide mb-2">Trailhead</p>
+            <div className="bg-stone-800/50 rounded-lg p-2 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-stone-500 mb-0.5">GPS Coordinates</p>
+                  <p className="text-xs font-mono text-stone-200">{latStr}, {lonStr}</p>
+                </div>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-blue-400 hover:text-blue-300 bg-blue-950/40 border border-blue-800/40 rounded px-2 py-1 transition-colors"
+                >
+                  Open in Maps →
+                </a>
+              </div>
+              {detail.parkingNotes && (
+                <div className="pt-1 border-t border-stone-700">
+                  <p className="text-[10px] text-stone-500 mb-0.5">🅿 Recommended Parking</p>
+                  <p className="text-[10px] text-stone-300 leading-relaxed">{detail.parkingNotes}</p>
+                  {detail.parkingLat && detail.parkingLon && (
+                    <a
+                      href={`https://www.google.com/maps?q=${detail.parkingLat},${detail.parkingLon}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-1 text-[10px] text-blue-400 hover:text-blue-300"
+                    >
+                      Get directions to parking →
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Warnings */}
       {detail.warnings && (
