@@ -3,6 +3,7 @@ import { useTripStore } from '../../store/useTripStore';
 import { useTrailStore } from '../../store/useTrailStore';
 import { useWeatherStore } from '../../store/useWeatherStore';
 import { usePackingStore } from '../../store/usePackingStore';
+import { toUTM } from '../../utils/coords';
 
 interface TripBriefingProps {
   onClose: () => void;
@@ -71,6 +72,8 @@ export default function TripBriefing({ onClose }: TripBriefingProps) {
   const setGroupMembers = useTripStore((s) => s.setGroupMembers);
 
   const loadedTrail = useTrailStore((s) => s.loadedTrail);
+  const trailheadCoords = useTrailStore((s) => s.trailheadCoords);
+  const parkingNotes = useTrailStore((s) => s.parkingNotes);
   const summary = useWeatherStore((s) => s.summary);
   const periods = useWeatherStore((s) => s.periods);
   const packingList = usePackingStore((s) => s.list);
@@ -321,6 +324,50 @@ export default function TripBriefing({ onClose }: TripBriefingProps) {
                 </div>
               ) : (
                 <p className="text-sm text-stone-600 italic">No trail loaded. Select a trail from the Trails tab to populate this section.</p>
+              )}
+            </Section>
+
+            {/* ── Trailhead & Parking ── */}
+            <Section title="Trailhead & Parking" icon="🅿">
+              {trailheadCoords ? (() => {
+                const { lat, lon } = trailheadCoords;
+                const latStr = Math.abs(lat).toFixed(5) + (lat >= 0 ? '° N' : '° S');
+                const lonStr = Math.abs(lon).toFixed(5) + (lon >= 0 ? '° E' : '° W');
+                return (
+                  <div className="space-y-3">
+                    <div className="briefing-section bg-stone-800/60 border border-stone-700 rounded-lg p-3 space-y-2">
+                      <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide">Trailhead GPS</p>
+                      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                        <div>
+                          <p className="text-[10px] text-stone-500 mb-0.5">Decimal Degrees</p>
+                          <p className="text-sm font-mono text-stone-100">{latStr}, {lonStr}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-stone-500 mb-0.5">UTM</p>
+                          <p className="text-sm font-mono text-stone-100">{toUTM(lat, lon)}</p>
+                        </div>
+                      </div>
+                      <a
+                        href={`https://www.google.com/maps?q=${lat},${lon}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="briefing-no-print inline-block text-xs text-blue-400 hover:text-blue-300 underline"
+                      >
+                        Open trailhead in Google Maps →
+                      </a>
+                    </div>
+                    {parkingNotes && (
+                      <div className="briefing-section bg-stone-800/60 border border-stone-700 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1.5">Recommended Parking</p>
+                        <p className="text-sm text-stone-300 leading-relaxed">{parkingNotes}</p>
+                      </div>
+                    )}
+                    <ChecklistItem label="Confirm trailhead parking fee / reservation if required" />
+                    <ChecklistItem label="Screenshot / download offline map before losing cell signal" />
+                  </div>
+                );
+              })() : (
+                <p className="text-sm text-stone-600 italic">Load a trail to see trailhead coordinates and parking info.</p>
               )}
             </Section>
 
