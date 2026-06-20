@@ -240,8 +240,8 @@ app.get('/api/osm/trails', async (req, res) => {
   const lon = parseFloat(req.query.lon as string);
   if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat/lon required' });
 
-  // Bounding box ~15 miles around the location (faster query)
-  const delta = 0.22;
+  // Bounding box ~25 miles around the location
+  const delta = 0.35;
   const bbox = `${lat - delta},${lon - delta},${lat + delta},${lon + delta}`;
 
   // Query OSM for hiking paths, tracks, and named footways plus hiking route relations
@@ -444,7 +444,7 @@ app.get('/api/trails', async (req, res) => {
   const cached = trailCache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) return res.json(cached.data);
 
-  const query = `[out:json][timeout:18];relation["route"="hiking"]["name"](around:15000,${lat},${lon});out tags center;`;
+  const query = `[out:json][timeout:25];relation["route"="hiking"]["name"](around:40000,${lat},${lon});out tags center;`;
   try {
     const data = await overpassQuery(query);
     trailCache.set(cacheKey, { data, ts: Date.now() });
