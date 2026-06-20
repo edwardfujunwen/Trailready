@@ -837,7 +837,15 @@ app.get('/api/trails/detail', async (req, res) => {
       if (!groqKey) return null;
       const distLabel = distanceMi ? `${parseFloat(distanceMi).toFixed(1)}-mile` : '';
       const locLabel = locationName ? ` near ${locationName}` : '';
+      const routeTypeLabel = (req.query.routeType as string) || '';
+      const routeNote = routeTypeLabel === 'Out & Back'
+        ? 'IMPORTANT: This is an Out & Back trail. elevationGainFt must be the TOTAL round-trip elevation gain (both ways combined).'
+        : routeTypeLabel === 'Loop'
+        ? 'This is a Loop trail. elevationGainFt is the total gain for the full loop.'
+        : 'elevationGainFt is the total elevation gain for the entire hike.';
       const prompt = `You are an expert hiking guide with deep knowledge of US trails. Give me detailed information about the ${distLabel} "${name}" trail${locLabel}.
+
+${routeNote}
 
 Return ONLY valid JSON, no markdown, no explanation:
 {

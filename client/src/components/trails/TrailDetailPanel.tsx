@@ -43,7 +43,7 @@ interface NpsAlert {
 }
 
 interface Props {
-  trail: { name: string; distanceMi?: number; lat?: number; lon?: number };
+  trail: { name: string; distanceMi?: number; lat?: number; lon?: number; routeType?: string };
 }
 
 const difficultyColors: Record<string, string> = {
@@ -74,6 +74,7 @@ export default function TrailDetailPanel({ trail }: Props) {
     if (trail.lon) params.set('lon', trail.lon.toString());
     if (trail.distanceMi) params.set('distanceMi', trail.distanceMi.toString());
     if (locationName) params.set('locationName', locationName);
+    if (trail.routeType) params.set('routeType', trail.routeType);
     fetch(`${API_BASE}/api/trails/detail?${params}`)
       .then(r => r.json())
       .then(d => { setDetail(d); setLoading(false); })
